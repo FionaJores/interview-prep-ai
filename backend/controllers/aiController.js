@@ -3,7 +3,7 @@ const {conceptExplainPrompt, questionAnswerPrompt}=require("../utils/prompts");
 
 
 
-const ai=new GoogleGenAI({apiKey:process.env.GEMINI_API_KEY});
+const ai=new GoogleGenAI({apiKey:process.env.GOOGLE_API_KEY});
 
 const generateInterviewQuestions=async(req,res)=>{
    

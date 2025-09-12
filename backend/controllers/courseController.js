@@ -5,7 +5,7 @@ const Module = require("../models/Module");
 const Chapter = require("../models/Chapter");
 const Lesson = require("../models/Lesson");
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+const ai = new GoogleGenAI({ apiKey: process.env.GOOGLE_API_KEY });
 
 // ------------------ Generate Modules and save to DB ------------------
 const generateModulesFromAI = async (req, res) => {

@@ -37,57 +37,60 @@ Task:
 }
 Important: Do NOT add any extra text outside the JSON format. Only return valid JSON. 
 `);
-
 const analyzePrompt = `
-You are an experienced Technical HR Manager with expertise in talent acquisition and recruitment for technology, finance, and business roles. Your task is to conduct a detailed evaluation of the provided resume against the job description.
+You are an experienced Technical HR Manager. Analyze the provided resume against the job description.
+Return ONLY a JSON object in the following format:
 
-Alignment with Job Requirements: Analyze the resume to identify key skills, qualifications, and experiences that match the job requirements. Highlight areas where the candidate excels in fulfilling the role's technical, financial, or business-related expectations.
+{
+  "alignment": [/* key skills matching job requirements */],
+  "strengths": [/* candidate's strengths */],
+  "weaknesses": [/* gaps or missing skills */],
+  "overallFit": {
+    "recommendation": "Highly Suitable / Moderately Suitable / Not Suitable",
+    "reasoning": "Short reasoning here."
+  }
+}
 
-Strengths: Enumerate the candidate's core strengths, including technical skills, domain knowledge, certifications, achievements, or relevant experiences that align closely with the job description.
-
-Weaknesses: Point out any notable gaps or areas where the candidate's profile does not meet the job requirements, such as missing skills, insufficient experience, or lack of relevant certifications.
-
-Overall Fit: Provide a professional assessment of how well the candidate fits the role, considering both strengths and weaknesses. Offer an overall recommendation (e.g., highly suitable, moderately suitable, not suitable) and explain your reasoning.
-
-Ensure your evaluation is specific, clear, and actionable, taking into account the nuances of the job role and industry requirements.
+Do NOT include any extra text. Ensure the output is valid JSON.
 `;
 
 const improvePrompt = `
-You are a highly experienced Technical Career Advisor with deep expertise in the fields of Data Science, Web Development, Big Data Engineering, DevOps, and other technical domains. Your task is to provide detailed, actionable, and personalized guidance to help the individual improve their skills and advance their career based on the provided resume and job description.
+You are a Technical Career Advisor. Based on the resume and job description, provide actionable advice.
+Return ONLY a JSON object in the following format:
 
-1. **Skill Gap Analysis**: Identify the specific skills, technologies, tools, or certifications that are missing from the candidate's resume but are crucial for excelling in the specified job role.
+{
+  "skillGaps": [/* missing skills, tools, certifications */],
+  "certifications": [
+    "AWS Certified Solutions Architect",
+    "Microsoft Azure Fundamentals",
+    "Google Cloud Associate Engineer",
+    "Coursera/edX Full-Stack Web Development Specialization",
+    "Udemy Advanced ReactJS & Node.js Courses",
+    "Certified Scrum Master (CSM)"
+  ],
+  "learningPath": [/* actionable steps, courses, projects, internships */],
+  "emergingTrends": [/* trends, tools, frameworks to explore */],
+  "softSkillsImprovement": [/* communication, teamwork, leadership */],
+  "topPriorities": [/* top 3 actionable steps */]
+}
 
-2. **Recommended Learning Path**: Suggest practical steps the candidate can take to acquire the missing skills, such as:
-   - Online courses or certifications (e.g., Coursera, Udemy, or official vendor certifications like AWS, Azure, or Google Cloud).
-   - Projects or hands-on experiences that can help them gain expertise.
-   - Open-source contributions or internships for real-world exposure.
-
-3. **Emerging Trends and Technologies**: Highlight any emerging trends, tools, or frameworks in the industry that the candidate should explore to stay competitive and future-proof their career.
-
-4. **Improvement in Soft Skills**: If applicable, suggest areas where the candidate can improve soft skills (e.g., communication, teamwork, or leadership) that are essential for success in their chosen domain.
-
-5. **Overall Guidance**: Provide a summary of the top three actionable steps the candidate should prioritize to achieve significant improvement in their profile.
-
-Ensure that your response is specific to the candidate's field and the role described in the job description. Provide clear, concise, and actionable advice that the candidate can immediately apply to improve their skills and career prospects.
+Do NOT include any extra text. Ensure the output is valid JSON.
 `;
 
 const matchPrompt = `
-You are a skilled and advanced ATS (Applicant Tracking System) scanner, designed with deep functionality and specialized expertise in roles such as Data Science, Web Development, Big Data Engineering, and DevOps. Your task is to evaluate the provided resume against the job description thoroughly.
+You are an ATS evaluator. Compare the resume against the job description.
+Return ONLY a JSON object in the following format:
 
-Matching Percentage: Analyze the resume and provide a precise percentage score (between 0-100%) indicating how well the candidate's profile aligns with the job description. Please format this as "Match Percentage: XX%" where XX is the numerical value.
+{
+  "matchPercentage": 0, 
+  "missingKeywords": [/*skills/tools/certifications missing from resume */],
+  "summary": "Short summary of strengths, weaknesses, and overall suitability."
+}
 
-Missing Keywords: Identify and list any critical skills, technologies, tools, certifications, or keywords mentioned in the job description that are absent from the resume.
-
-Final Thoughts: Provide a brief, insightful summary of your evaluation, including the candidate's overall suitability for the role, highlighting both key strengths and gaps.
-
-Output Structure:
-
-Match Percentage: XX%
-Missing Keywords: 
-[List missing skills/tools/keywords]
-Final Thoughts: 
-[Provide a short summary of strengths and weaknesses and a recommendation if possible.]
+Do NOT include any extra text. Ensure the output is valid JSON.
 `;
+
+
 
 
 module.exports = { questionAnswerPrompt, conceptExplainPrompt,analyzePrompt,matchPrompt,improvePrompt };

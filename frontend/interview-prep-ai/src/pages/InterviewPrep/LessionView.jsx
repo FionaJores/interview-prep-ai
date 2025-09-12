@@ -17,6 +17,10 @@ const LessonView = () => {
   const [progress, setProgress] = useState(0);
   const [isScrolled, setIsScrolled] = useState(false);
 
+
+  
+
+
   const cleanContent = (rawContent) => {
     if (!rawContent) return "";
     let content = rawContent
@@ -379,9 +383,39 @@ const LessonView = () => {
                 />
               </div>
 
+              {/* Start Quiz Button */}
+              {lesson && !loading && (
+  <div className="mt-8 text-center px-6 md:px-8">
+    <button
+        onClick={() => {
+          navigate('/quiz', {
+            state: {
+              lessonId: lesson._id,
+              topic: lesson.chapterTitle,
+              moduleId: module._id,
+              chapterId: chapter._id
+            }
+          });
+
+          console.log('Navigating with state:', {
+            lessonId: lesson._id,
+            topic: lesson.chapterTitle,
+            moduleId: module._id,
+            chapterId: chapter._id
+  
+
+          });
+        }}
+        className="px-8 py-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl hover:from-green-600 hover:to-emerald-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 font-semibold text-lg"
+      >
+        Start Quiz
+      </button>
+  </div>
+)}
+
               {/* Resources Section */}
               {lesson.resources && lesson.resources.length > 0 && (
-                <div className="border-t border-gray-100 p-6 md:p-8 bg-gray-50">
+                <div className="border-t border-gray-100 p-6 md:p-8 bg-gray-50 mt-8">
                   <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />

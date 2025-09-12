@@ -102,6 +102,14 @@ app.use("/api/ai/questions", questionRoutes);
 app.use("/api/ai/generate-questions", protect, generateInterviewQuestions);
 app.use("/api/ai/generate-explanation", protect, generateConceptExplanation);
 
+app.use('/api/questions', require('./routes/questions'));
+app.use('/api/test-results', require('./routes/testResults'));
+
+app.get('/', (req, res) => {
+  res.json({ message: 'Adaptive Testing API is running!' });
+});
+
+
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // -------------------- Resume Analysis Routes --------------------

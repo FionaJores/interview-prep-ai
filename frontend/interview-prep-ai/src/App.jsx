@@ -12,6 +12,7 @@ import TabsWrapper from './pages/InterviewPrep/TabsWrapper';
 import ModuleChapters from './pages/InterviewPrep/ModuleChapters';
 import LessonView from './pages/InterviewPrep/LessionView';
 import ResumeAnalyzer from './ResumeAnalyzer';
+import AdaptiveTest from './components/AdaptiveTest';
 
 const App = () => {
   return (
@@ -25,6 +26,7 @@ const App = () => {
 
           {/* Protected / Dashboard */}
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/quiz" element={<AdaptiveTest/>}/>
 
           {/* Interview Prep Routes */}
           <Route path="/interview-prep/:sessionId" element={<TabsWrapper />} />
