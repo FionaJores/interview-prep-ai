@@ -29,5 +29,4 @@ export const getTestResults = (userId) => {
 };
 
 
-
 export default api;

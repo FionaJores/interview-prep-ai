@@ -13,6 +13,7 @@ import ModuleChapters from './pages/InterviewPrep/ModuleChapters';
 import LessonView from './pages/InterviewPrep/LessionView';
 import ResumeAnalyzer from './ResumeAnalyzer';
 import AdaptiveTest from './components/AdaptiveTest';
+import ProfilePage from './pages/InterviewPrep/ProfilePage/ProfilePage';
 
 const App = () => {
   return (
@@ -36,6 +37,8 @@ const App = () => {
           {/* Module & Lesson Routes */}
           <Route path="/modules/:moduleId" element={<ModuleChapters />} />
           <Route path="/lessons/:moduleId/:chapterId" element={<LessonView />} />
+             <Route path="/profile" element={<ProfilePage />} />
+
         </Routes>
       </Router>
 

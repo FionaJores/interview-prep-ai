@@ -48,6 +48,30 @@ exports.getMySessions = async (req,res) =>{
     }
 }
 
+
+
+// controllers/sessionController.js
+exports.getMySessionsForAnalytics = async (req, res) => {
+    console.log("Reached");
+  try {
+    const sessions = await Session.find({ user: req.user.id })
+      .sort({ createdAt: -1 })
+      .populate({
+        path: "modules",
+        populate: [
+      { path: "chapters" },
+    { path: "lessons" }
+        ]
+      });
+
+    res.status(200).json(sessions);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: "Server Error" });
+  }
+};
+
+
 exports.getSessionById = async (req,res) => {
     try{
         const session = await Session.findById(req.params.id)

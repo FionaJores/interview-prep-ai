@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import ProfileInfoCard from '../Cards/ProfileInfoCard';
 import { Link } from 'react-router-dom';
+import ProfileCardWrapper from '../Cards/ProfileCardWrapper';
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -27,7 +28,7 @@ const Navbar = () => {
         
         <div className='flex items-center gap-4'>
 
-          <ProfileInfoCard />
+          <ProfileCardWrapper />
           
           <button 
             className='md:hidden p-2 rounded-md text-gray-500 hover:text-gray-700 focus:outline-none'

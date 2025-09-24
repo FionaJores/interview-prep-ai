@@ -53,7 +53,7 @@ router.post('/', async (req, res) => {
 router.get('/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
-    console.log(userId);
+    //console.log(userId);
     const results = await TestResult.find({ user: userId }).sort({ date: -1 });
     res.json(results);
   } catch (error) {
