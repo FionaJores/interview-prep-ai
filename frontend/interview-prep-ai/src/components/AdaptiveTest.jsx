@@ -7,10 +7,11 @@ import Results from './Results';
 
 const AdaptiveTest = () => {
   const location = useLocation();
-  const { topic, moduleId, chapterId } = location.state || {};
+  const { topic, moduleId } = location.state || {};
 
   const { user } = useContext(UserContext);
   const [lessonId, setLessonId] = useState(location.state?.lessonId || null);
+  const [chapterId, setChapterId] = useState(location.state?.chapterId || null);
   const [questions, setQuestions] = useState([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [currentDifficulty, setCurrentDifficulty] = useState(5);
@@ -84,70 +85,45 @@ const AdaptiveTest = () => {
 
   // Difficulty level colors based on value
   const difficultyColors = [
-    '#4caf50', // 1 - Easy green
-    '#66bb6a', // 2
-    '#9ccc65', // 3
-    '#d4e157', // 4
-    '#ffee58', // 5 - Medium yellow
-    '#ffca28', // 6
-    '#ffa726', // 7
-    '#ff7043', // 8
-    '#ff5722', // 9
-    '#f44336'  // 10 - Hard red
+    '#4caf50', '#66bb6a', '#9ccc65', '#d4e157', '#ffee58',
+    '#ffca28', '#ffa726', '#ff7043', '#ff5722', '#f44336'
   ];
 
   // Difficulty level icons based on value
-  const difficultyIcons = [
-    '🌱', // 1 - Sprout
-    '🌿', // 2
-    '🍀', // 3
-    '🌾', // 4
-    '🌻', // 5 - Sunflower
-    '🌺', // 6
-    '🌹', // 7
-    '🔥', // 8
-    '⚡', // 9
-    '💀'  // 10 - Skull
-  ];
+  const difficultyIcons = ['🌱','🌿','🍀','🌾','🌻','🌺','🌹','🔥','⚡','💀'];
 
   // Difficulty level labels based on value
-  const difficultyLabels = [
-    'Beginner',
-    'Novice',
-    'Apprentice',
-    'Learner',
-    'Intermediate',
-    'Skilled',
-    'Proficient',
-    'Advanced',
-    'Expert',
-    'Master'
-  ];
+  const difficultyLabels = ['Beginner','Novice','Apprentice','Learner','Intermediate','Skilled','Proficient','Advanced','Expert','Master'];
 
-  // ✅ Fetch questions when topic and user are available
-useEffect(() => {
+  // ✅ Fetch questions when topic, lessonId, chapterId, and user are available
+  useEffect(() => {
     if (!topic) {
       setError('Topic not provided');
       setLoading(false);
       return;
     }
-    if (!user) return; // wait for user
+    if (!user) return;
     if (!lessonId) {
       setError('Lesson ID not provided. Please start the test from the correct page.');
       setLoading(false);
       return;
     }
+    if (!chapterId) {
+      setError('Chapter ID not provided. Please start the test from the correct page.');
+      setLoading(false);
+      return;
+    }
 
     loadQuestions(currentDifficulty);
-  }, [topic, user, lessonId]);
+  }, [topic, user, lessonId, chapterId]);
 
   const loadQuestions = async (difficulty = 5) => {
     try {
       setLoading(true);
       setError(null);
 
-      // ✅ Always send the validated lessonId
-      const response = await getQuestions(topic, difficulty, lessonId, user._id);
+      // ✅ Pass both lessonId and chapterId to API
+      const response = await getQuestions(topic, difficulty, lessonId, user._id, chapterId);
       const data = response.data;
 
       console.log('Questions API Response:', data);
@@ -166,10 +142,9 @@ useEffect(() => {
         return;
       }
 
-      // ✅ Backend may return normalized lessonId → update once
-      if (data.lessonId && lessonId !== data.lessonId) {
-        setLessonId(data.lessonId);
-      }
+      // Update lessonId and chapterId if backend returns normalized values
+      if (data.lessonId && lessonId !== data.lessonId) setLessonId(data.lessonId);
+      if (data.chapterId && chapterId !== data.chapterId) setChapterId(data.chapterId);
 
       setQuestions(data.questions);
       setCurrentQuestionIndex(0);
@@ -240,9 +215,9 @@ useEffect(() => {
       const result = {
         userId: user?._id,
         topic,
-        lessonId,   // ✅ always safe & validated
-        moduleId,
+        lessonId,
         chapterId,
+        moduleId,
         score,
         totalQuestions: 10,
         answers: enrichedAnswers,
@@ -251,9 +226,7 @@ useEffect(() => {
 
       console.log('Saving Test Result:', result);
 
-      saveTestResult(result).catch(err => {
-        console.error('Failed to save test results:', err);
-      });
+      saveTestResult(result).catch(err => console.error('Failed to save test results:', err));
 
       setTestResult(result);
       setTestCompleted(true);

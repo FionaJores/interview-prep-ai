@@ -6,14 +6,19 @@ const api = axios.create({
   baseURL: API_BASE_URL,
 });
 
-export const getQuestions = (topic, difficulty, lessonId, userId) => {
+export const getQuestions = (topic, difficulty, lessonId, userId, chapterId) => {
   if (!lessonId) {
     throw new Error("lessonId is required to fetch questions");
   }
+  if (!chapterId) {
+    throw new Error("chapterId is required to fetch questions");
+  }
+
   return api.get(
-    `/api/questions/${encodeURIComponent(topic)}?difficulty=${difficulty}&lessonId=${lessonId}&userId=${userId}`
+    `/api/questions/${encodeURIComponent(topic)}?difficulty=${difficulty}&lessonId=${lessonId}&userId=${userId}&chapterId=${chapterId}`
   );
 };
+
 
 
 

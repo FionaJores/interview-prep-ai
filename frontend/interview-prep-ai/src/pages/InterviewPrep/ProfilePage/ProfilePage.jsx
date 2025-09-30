@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from "react";
 import "./ProfilePage.css";
 import ProfileInfoCard from "../../../components/Cards/ProfileInfoCard";
-import SocialLinksCard from "../../../components/Cards/SocialLinksCard/SocialLinksCard";
+
 import SessionAnalytics from "../../../components/Cards/SessionAnalytics/SessionAnalytics";
 import { UserContext } from "../../../context/userContext";
 import { API_PATHS } from "../../../utils/apiPaths";
@@ -47,7 +47,7 @@ const ProfilePage = () => {
   return (
     <div className="profile-page p-5">
       <ProfileInfoCard />
-      <SocialLinksCard user={user} />
+  
       <SessionAnalytics sessions={sessions} testResults={testResults} />
     </div>
   );
