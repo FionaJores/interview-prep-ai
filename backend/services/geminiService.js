@@ -5,38 +5,43 @@ const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
 
 const generateQuestions = async (topic, count = 10, initialDifficulty = 5) => {
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
-    const prompt = `
-    Generate ${count} multiple-choice questions on the topic "${topic}" with varying difficulty levels.
-    Each question should include:
-    - questionText
-    - options (exactly 4)
-    - correctAnswer (one of the options)
-    - difficulty (1–10)
-    - explanation (why the correct answer is right)
+   const prompt = `
+You are a JSON generator. 
+Return your answer as a **valid JSON array only**, no markdown, no code fences, no commentary.
 
-    Format as a JSON array only (no extra text):
-    [
-      {
-        "questionText": "Question text here",
-        "options": ["Option 1", "Option 2", "Option 3", "Option 4"],
-        "correctAnswer": "Correct option text",
-        "difficulty": 1,
-        "explanation": "Reason why this is the correct answer"
-      }
-    ]
+Generate ${count} multiple-choice questions on the topic "${topic}" with varying difficulty levels.
 
-    Use these difficulty levels:
-    - Question 1: ${initialDifficulty}
-    - Questions 2–3: ${initialDifficulty} ± 1
-    - Questions 4–6: ${initialDifficulty} ± 2
-    - Questions 7–8: ${initialDifficulty} ± 3
-    - Questions 9–10: ${initialDifficulty} ± 4
+Each array element must be an object with exactly these fields:
+- questionText (string)
+- options (array of exactly 4 strings)
+- correctAnswer (string, must match one option exactly)
+- difficulty (integer 1–10)
+- explanation (string, why the correct answer is right)
 
-    Make questions educational and clear with only one correct answer.
-    Return ONLY the JSON array.
-    `;
+Use the following difficulty levels:
+- Question 1: ${initialDifficulty}
+- Questions 2–3: ${initialDifficulty} ± 1
+- Questions 4–6: ${initialDifficulty} ± 2
+- Questions 7–8: ${initialDifficulty} ± 3
+- Questions 9–10: ${initialDifficulty} ± 4
+
+Example format (no text outside the array):
+
+[
+  {
+    "questionText": "Question text here",
+    "options": ["Option 1", "Option 2", "Option 3", "Option 4"],
+    "correctAnswer": "Correct option text",
+    "difficulty": 1,
+    "explanation": "Reason why this is the correct answer"
+  }
+]
+
+Return **only** the JSON array above, with ${count} objects for "${topic}".
+`;
+
 
     const result = await model.generateContent(prompt);
     const response = await result.response;

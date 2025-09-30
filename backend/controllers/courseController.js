@@ -7,7 +7,7 @@ const Lesson = require("../models/Lesson");
 
 const ai = new GoogleGenAI({ apiKey: process.env.GOOGLE_API_KEY });
 
-// ------------------ Generate Modules and save to DB ------------------
+
 const generateModulesFromAI = async (req, res) => {
   try {
     const { sessionId, role, experience, skills, description } = req.body;
@@ -16,20 +16,24 @@ const generateModulesFromAI = async (req, res) => {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
-    const session = await Session.findById(sessionId).populate({
-      path: "modules",
-      populate: { path: "chapters lessons" },
-    });
+    console.log("🔹 Starting module generation for session:", sessionId);
+
+    const session = await Session.findById(sessionId).populate("modules");
     if (!session) return res.status(404).json({ message: "Session not found" });
 
+    const skillList = skills.split(",").map(s => s.trim().toLowerCase());
     const modules = [];
 
-    for (let skill of skills.split(",")) {
-      skill = skill.trim();
+    for (const skill of skillList) {
+      console.log("➡ Processing skill:", skill);
 
-      // Check if module already exists
-      let moduleDoc = session.modules.find(m => m.skill === skill);
+      // Check existing module
+      let moduleDoc = await Module.findOne({ session: session._id, skill });
+      console.log("Module found in DB:", !!moduleDoc);
+
       if (!moduleDoc) {
+        console.log("⚡ No module found, creating new module for skill:", skill);
+
         // Generate chapters via AI
         const prompt = generateChapterPrompt(skill, role, experience, description);
         const response = await ai.models.generateContent({
@@ -37,21 +41,20 @@ const generateModulesFromAI = async (req, res) => {
           contents: prompt,
         });
 
-        let chaptersData;
+        let chaptersData = [];
         try {
           chaptersData = JSON.parse(
             response.text.replace(/^```json\s*/, "").replace(/```$/, "").trim()
           );
         } catch (err) {
           console.error(`❌ Failed to parse chapters for skill "${skill}":`, response.text);
-          chaptersData = [];
         }
 
-        // Create module
-        moduleDoc = await Module.create({ skill, session: session._id });
-        session.modules.push(moduleDoc._id);
+        // Create new module
+        moduleDoc = await Module.create({ skill, session: session._id, chapters: [] });
+        console.log("Module created:", moduleDoc._id);
 
-        // Save chapters
+        // Create chapters dynamically
         for (const ch of chaptersData) {
           const chapterDoc = await Chapter.create({
             chapterTitle: ch.chapterTitle,
@@ -59,21 +62,35 @@ const generateModulesFromAI = async (req, res) => {
             module: moduleDoc._id,
           });
           moduleDoc.chapters.push(chapterDoc._id);
+          console.log("Chapter created:", chapterDoc.chapterTitle, chapterDoc._id);
         }
 
         await moduleDoc.save();
+        console.log("Module saved with chapters:", moduleDoc._id, moduleDoc.chapters.length);
+      }
+
+      // Link module to session if not already linked
+      if (!session.modules.some(id => id.toString() === moduleDoc._id.toString())) {
+        session.modules.push(moduleDoc._id);
+        console.log("Module linked to session:", moduleDoc._id);
+      } else {
+        console.log("Module already linked to session, skipping:", moduleDoc._id);
       }
 
       modules.push(moduleDoc);
     }
 
     await session.save();
-    res.status(200).json(modules);
+    console.log("✅ Session saved with modules:", session.modules.length);
+
+    res.status(200).json({ success: true, modules });
+
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Failed to generate modules", error: err.message });
   }
 };
+
 
 // ------------------ Generate Lesson and save to DB ------------------
 const generateLessonFromAI = async (req, res) => {
@@ -84,7 +101,7 @@ const generateLessonFromAI = async (req, res) => {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
-    const module = await Module.findById(moduleId).populate("lessons");
+    const module = await Module.findById(moduleId);
     if (!module) return res.status(404).json({ message: "Module not found" });
 
     const session = await Session.findById(sessionId);
@@ -108,7 +125,6 @@ const generateLessonFromAI = async (req, res) => {
       );
     } catch (err) {
       console.error(`❌ Failed to parse lesson JSON:`, response.text);
-      // fallback: wrap raw text
       lessonData = {
         lessonContent: response.text,
         resources: [],
@@ -121,14 +137,13 @@ const generateLessonFromAI = async (req, res) => {
       chapterTitle,
       chapterDescription,
       lessonContent: lessonData.lessonContent || response.text,
-      resources: lessonData.resources || [], // ✅ now saving resources
+      resources: lessonData.resources || [],
       module: module._id,
       chapter: chapterId,
       session: session._id,
     });
 
-    module.lessons.push(lessonDoc._id);
-    await module.save();
+    // ✅ No need to push lesson ID into module
 
     res.status(200).json(lessonDoc);
   } catch (err) {
@@ -143,7 +158,7 @@ const getModuleBySessionAndSkill = async (req, res) => {
     const { sessionId, skill } = req.params;
 
     const module = await Module.findOne({ session: sessionId, skill })
-      .populate("chapters lessons");
+      .populate("chapters"); // no lessons
     if (!module) return res.status(404).json({ message: "Module not found" });
     res.json(module);
   } catch (err) {
@@ -152,6 +167,7 @@ const getModuleBySessionAndSkill = async (req, res) => {
   }
 };
 
+// ------------------ GET Lesson by Module and Chapter ------------------
 const getLessonByModuleAndChapter = async (req, res) => {
   try {
     const { moduleId, chapterId } = req.params;

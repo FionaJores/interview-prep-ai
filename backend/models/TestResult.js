@@ -16,6 +16,11 @@ const testResultSchema = new mongoose.Schema({
     ref: 'Lesson',
     required: true
   },
+  chapterId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Chapter',
+    required: true
+  },
   topic: {
     type: String,
     required: true

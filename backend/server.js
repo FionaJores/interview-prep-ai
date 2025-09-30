@@ -13,6 +13,7 @@ const authRoutes = require("./routes/authRoutes");
 const sessionRoutes = require("./routes/sessionRoutes");
 const questionRoutes = require("./routes/questionRoutes");
 const aiRoutes = require("./routes/aiRoutes");
+const quizRoutes=require("./routes/quizRoutes")
 const { protect } = require("./middlewares/authMiddleware");
 
 // Controllers
@@ -104,6 +105,8 @@ app.use("/api/ai/generate-explanation", protect, generateConceptExplanation);
 
 app.use('/api/questions', require('./routes/questions'));
 app.use('/api/test-results', require('./routes/testResults'));
+
+app.use("/api", quizRoutes);
 
 app.get('/', (req, res) => {
   res.json({ message: 'Adaptive Testing API is running!' });

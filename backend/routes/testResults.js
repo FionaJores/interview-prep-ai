@@ -6,16 +6,20 @@ const Quiz = require('../models/Quiz'); // ✅ To fetch question details
 // ✅ Create or return existing attempt
 router.post('/', async (req, res) => {
   try {
+    const { userId, lessonId, chapterId } = req.body;
+    //console.log(chapterId);
 
-
-    const { userId, lessonId } = req.body;
-
-    if (!userId || !lessonId) {
-      return res.status(400).json({ message: 'userId and lessonId are required' });
+    if (!userId || !lessonId || !chapterId) {
+      return res.status(400).json({ message: 'userId, lessonId, and chapterId are required' });
     }
 
-    // ✅ Check if an attempt already exists for this user and lesson
-    let existingResult = await TestResult.findOne({ user: userId, lessonId, attempt: true });
+    // ✅ Check if an attempt already exists for this user, lesson, and chapter
+    let existingResult = await TestResult.findOne({ 
+      user: userId, 
+      lessonId, 
+      chapterId, 
+      attempt: true 
+    });
 
     if (existingResult) {
       const populatedResult = await populateAnswerDetails(existingResult);
@@ -53,7 +57,6 @@ router.post('/', async (req, res) => {
 router.get('/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
-    //console.log(userId);
     const results = await TestResult.find({ user: userId }).sort({ date: -1 });
     res.json(results);
   } catch (error) {
@@ -83,8 +86,5 @@ async function populateAnswerDetails(testResult) {
     answers: populatedAnswers
   };
 }
-
-
-
 
 module.exports = router;

@@ -37,23 +37,7 @@ const registerUser = async(req,res)=>{
         res.status(500).json({message:"Server error",error:error.message})
     }
 }
-const updateSocialLinks = async (req, res) => {
-  try {
-    const userId = req.user.id; // Assuming `req.user` from auth middleware
-    const { linkedin, github, leetcode, hackerrank, skillrack, portfolio } = req.body;
 
-    const updatedUser = await User.findByIdAndUpdate(
-      userId,
-      { linkedin, github, leetcode, hackerrank, skillrack, portfolio },
-      { new: true, runValidators: true }
-    );
-
-    res.status(200).json({ success: true, user: updatedUser });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ success: false, message: "Server Error" });
-  }
-};
 const loginUser = async(req,res)=>{
     try{
         const{ email,password } = req.body;
@@ -93,4 +77,4 @@ const getUserProfile = async(req,res)=>{
     }
 }
 
-module.exports = {registerUser, loginUser, getUserProfile,updateSocialLinks};
+module.exports = {registerUser, loginUser, getUserProfile};

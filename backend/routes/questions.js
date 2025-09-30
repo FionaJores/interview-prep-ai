@@ -2,35 +2,35 @@ const express = require('express');
 const router = express.Router();
 const Question = require('../models/Quiz');
 const mongoose = require('mongoose');
-const TestResult=require('../models/TestResult')
+const TestResult = require('../models/TestResult');
 const { generateQuestions } = require('../services/geminiService');
 
-// ✅ GET QUESTIONS WITH LESSON ID'
+// ✅ GET QUESTIONS BY TOPIC
 router.get('/:topic', async (req, res) => {
   try {
     const { topic } = req.params;
-    const { difficulty = 5, lessonId, userId } = req.query;
+    const { difficulty = 5, lessonId, chapterId, userId } = req.query;
+    //console.log(chapterId);
 
-    
+    if (!userId) return res.status(400).json({ message: 'userId is required' });
 
-    if (!userId) {
-      return res.status(400).json({ message: 'userId is required' });
-    }
-
-    // ✅ Validate lessonId
     if (!lessonId || !mongoose.Types.ObjectId.isValid(lessonId)) {
       return res.status(400).json({ message: 'Invalid or missing lessonId' });
     }
 
-    // ✅ Check if test already attempted
+    if (!chapterId || !mongoose.Types.ObjectId.isValid(chapterId)) {
+      return res.status(400).json({ message: 'Invalid or missing chapterId' });
+    }
+
+    // Check if test already attempted
     const existingResult = await TestResult.findOne({
       user: userId,
       lessonId,
+      chapterId,
       attempt: true,
     });
-
+   //console.log(existingResult);
     if (existingResult) {
-      // Populate answers with question + explanation
       const populatedAnswers = await Promise.all(
         existingResult.answers.map(async (ans) => {
           const q = await Question.findById(ans.questionId).lean();
@@ -51,24 +51,17 @@ router.get('/:topic', async (req, res) => {
         attempted: true,
         topic: existingResult.topic,
         lessonId: existingResult.lessonId,
+        chapterId: existingResult.chapterId,
         score: existingResult.score,
         totalQuestions: existingResult.totalQuestions,
         answers: populatedAnswers,
       });
     }
 
-    // ✅ If not attempted, fetch/generate quiz
-    let questions = await Question.find({ lessonId });
+    // Fetch existing questions
+    let questions = await Question.find({ lessonId, chapterId });
 
-    if (questions.length === 0) {
-      questions = await Question.aggregate([
-        { $match: { topic: new RegExp(topic, 'i') } },
-        { $addFields: { diff: { $abs: { $subtract: ["$difficulty", parseInt(difficulty)] } } } },
-        { $sort: { diff: 1 } },
-        { $limit: 10 },
-      ]);
-    }
-
+    // If insufficient, generate more questions
     if (questions.length < 10) {
       const remaining = 10 - questions.length;
       let generated = [];
@@ -82,6 +75,7 @@ router.get('/:topic', async (req, res) => {
         const toSave = generated.map(q => ({
           ...q,
           lessonId,
+          chapterId,
           topic,
           difficulty: parseInt(difficulty),
         }));
@@ -94,28 +88,37 @@ router.get('/:topic', async (req, res) => {
       attempted: false,
       topic,
       lessonId,
+      chapterId,
       questions: questions.slice(0, 10),
     });
+
   } catch (error) {
     console.error('❌ Error in /api/questions route:', error);
     res.status(500).json({ message: error.message });
   }
 });
 
-// Generate questions with Gemini API
+// ✅ GENERATE QUESTIONS USING GEMINI API
 router.post('/generate/:topic', async (req, res) => {
   try {
     const { topic } = req.params;
-    const { count = 10, difficulty = 5, lessonId } = req.body; // ✅ Accept lessonId
+    const { count = 10, difficulty = 5, lessonId, chapterId } = req.body;
+
+    if (!lessonId || !chapterId) {
+      return res.status(400).json({ message: 'lessonId and chapterId are required' });
+    }
 
     const generatedQuestions = await generateQuestions(topic, count, difficulty);
 
-    const questionsWithLessonId = generatedQuestions.map(q => ({
+    const questionsWithIds = generatedQuestions.map(q => ({
       ...q,
-      lessonId: lessonId || null
+      lessonId,
+      chapterId,
+      topic,
+      difficulty: parseInt(difficulty),
     }));
 
-    const savedQuestions = await Question.insertMany(questionsWithLessonId);
+    const savedQuestions = await Question.insertMany(questionsWithIds);
 
     res.status(201).json(savedQuestions);
   } catch (error) {
@@ -123,7 +126,7 @@ router.post('/generate/:topic', async (req, res) => {
   }
 });
 
-// Get all questions
+// ✅ GET ALL QUESTIONS
 router.get('/', async (req, res) => {
   try {
     const questions = await Question.find();
