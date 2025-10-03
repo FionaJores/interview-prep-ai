@@ -1,16 +1,10 @@
-import React from "react";
-import { useNavigate } from "react-router-dom";
-import ProfileInfoCard from "./ProfileInfoCard";
+// ProfileCardWrapper.js - Make sure it looks like this
+import React from 'react';
+import ProfileInfoCard from './ProfileInfoCard';
 
 const ProfileCardWrapper = () => {
-  const navigate = useNavigate();
-
-  const handleClick = () => {
-    navigate("/profile"); // navigate to profile dashboard
-  };
-
   return (
-    <div onClick={handleClick} className="cursor-pointer">
+    <div className="profile-card-wrapper">
       <ProfileInfoCard />
     </div>
   );

@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useContext } from "react";
+import { Link } from "react-router-dom";
 import "./ProfilePage.css";
 import ProfileInfoCard from "../../../components/Cards/ProfileInfoCard";
-
 import SessionAnalytics from "../../../components/Cards/SessionAnalytics/SessionAnalytics";
 import { UserContext } from "../../../context/userContext";
 import { API_PATHS } from "../../../utils/apiPaths";
 import axiosInstance from "../../../utils/axiosInstance";
 import { getTestResults } from "../../../services/api";
+import Navbar from "../../../components/layouts/Navbar";
 
 const ProfilePage = () => {
   const { user } = useContext(UserContext);
@@ -46,9 +47,11 @@ const ProfilePage = () => {
 
   return (
     <div className="profile-page p-5">
-      <ProfileInfoCard />
-  
-      <SessionAnalytics sessions={sessions} testResults={testResults} />
+      {/* Interview Prep AI Header Link */}
+      <Navbar/>
+      <div className="profile-container">
+        <SessionAnalytics sessions={sessions} testResults={testResults} />
+      </div>
     </div>
   );
 };
