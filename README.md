@@ -41,8 +41,7 @@ A smart and interactive platform to help users prepare for interviews by creatin
 ![image](https://github.com/user-attachments/assets/60a39999-82f4-430b-a4c7-3d471aa8432f)
 ![image](https://github.com/user-attachments/assets/8a30ef7a-f0b4-4f28-ae00-b51ae6a9e950)
 
-## ✨ Credits
-Designed and Developed by Jaya Chithra
+
 
 AI Integration powered by **Gemini API**
 
