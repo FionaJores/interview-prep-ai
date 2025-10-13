@@ -160,7 +160,7 @@ const getModuleBySessionAndSkill = async (req, res) => {
     const session = await Session.findById(sessionId)
       .populate({
         path: "modules",
-        match: { skill: skill },   // filter modules by skill
+      match: { skill: new RegExp(`^${skill}$`, "i") },
         populate: {
           path: "chapters",        // populate chapters inside each module
         },
@@ -201,3 +201,4 @@ module.exports = {
   getModuleBySessionAndSkill,
   getLessonByModuleAndChapter,
 };
+
