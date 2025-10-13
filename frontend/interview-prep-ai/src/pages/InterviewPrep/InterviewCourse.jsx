@@ -16,11 +16,10 @@ const InterviewCourse = ({ sessionId }) => {
       try {
         const res = await axiosInstance.get(API_PATHS.SESSION.GET_ONE(sessionId));
         const session = res.data.session;
-
         if (!session.topicsToFocus) return;
 
         const skills = session.topicsToFocus.split(",").map(s => s.trim());
-
+        console.log(res,session);
         const existingModulesRes = await Promise.all(
           skills.map(skill =>
             axiosInstance
@@ -28,25 +27,34 @@ const InterviewCourse = ({ sessionId }) => {
               .catch(err => (err.response?.status === 404 ? null : Promise.reject(err)))
           )
         );
+        console.log(existingModulesRes);
 
         const modulesList = [];
         const modulesToGenerate = [];
 
         existingModulesRes.forEach((modRes, idx) => {
-          if (modRes?.data) modulesList.push(modRes.data);
-          else modulesToGenerate.push(skills[idx]);
+          modRes?.data ? modulesList.push(modRes.data) : modulesToGenerate.push(skills[idx]);
         });
 
-        if (modulesToGenerate.length > 0) {
-          const genRes = await axiosInstance.post(API_PATHS.AI.GENERATE_MODULES, {
-            sessionId: session._id,
-            role: session.role,
-            experience: session.experience,
-            skills: modulesToGenerate.join(","),
-            description: session.description,
-          });
-          modulesList.push(...genRes.data);
-        }
+        if (modulesToGenerate.length) {
+  const genRes = await axiosInstance.post(API_PATHS.AI.GENERATE_MODULES, {
+    sessionId: session._id,
+    role: session.role,
+    experience: session.experience,
+    skills: modulesToGenerate.join(","),
+    description: session.description,
+  });
+
+  const generated = Array.isArray(genRes.data)
+    ? genRes.data
+    : genRes.data
+    ? [genRes.data]
+    : [];
+    console.log(generated);
+
+  modulesList.push(...generated);
+}
+
 
         setModules(modulesList);
       } catch (err) {
@@ -60,17 +68,10 @@ const InterviewCourse = ({ sessionId }) => {
     fetchModules();
   }, [sessionId]);
 
-  const openModule = (mod) => {
-    navigate(`/modules/${mod._id}`, { state: { module: mod } });
-  };
+  const openModule = mod => navigate(`/modules/${mod._id}`, { state: { module: mod } });
 
-  // Get unique skills for filter
   const uniqueSkills = [...new Set(modules.map(module => module.skill))];
-  
-  // Filter modules based on selected filter
-  const filteredModules = filter === "all" 
-    ? modules 
-    : modules.filter(module => module.skill === filter);
+  const filteredModules = filter === "all" ? modules : modules.filter(m => m.skill === filter);
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-6">
@@ -79,14 +80,15 @@ const InterviewCourse = ({ sessionId }) => {
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Learning Path</h1>
           <p className="text-gray-600">Customized modules to prepare for your interview</p>
         </div>
-        
         {modules.length > 0 && (
           <div className="mt-4 md:mt-0">
-            <label htmlFor="filter" className="block text-sm font-medium text-gray-700 mb-1">Filter by skill:</label>
+            <label htmlFor="filter" className="block text-sm font-medium text-gray-700 mb-1">
+              Filter by skill:
+            </label>
             <select
               id="filter"
               value={filter}
-              onChange={(e) => setFilter(e.target.value)}
+              onChange={e => setFilter(e.target.value)}
               className="block w-full md:w-48 pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
             >
               <option value="all">All Skills</option>
@@ -140,7 +142,7 @@ const InterviewCourse = ({ sessionId }) => {
         </div>
       ) : (
         <div className="space-y-6">
-          {filteredModules.map((mod) => (
+          {filteredModules.map(mod => (
             <div
               key={mod._id}
               className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 transition-all duration-200 hover:shadow-md cursor-pointer"
@@ -154,7 +156,6 @@ const InterviewCourse = ({ sessionId }) => {
                     </svg>
                   </div>
                 </div>
-                
                 <div className="flex-1 min-w-0">
                   <div className="flex items-baseline justify-between">
                     <h2 className="text-xl font-semibold text-gray-900 truncate">{mod.skill}</h2>
@@ -162,9 +163,7 @@ const InterviewCourse = ({ sessionId }) => {
                       {mod.estimatedHours || '2-4'} hours
                     </span>
                   </div>
-                  
                   <p className="mt-2 text-gray-600">{mod.description}</p>
-                  
                   <div className="mt-4 flex items-center">
                     <div className="flex items-center text-sm text-gray-500">
                       <svg xmlns="http://www.w3.org/2000/svg" className="flex-shrink-0 mr-1.5 h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
@@ -172,7 +171,6 @@ const InterviewCourse = ({ sessionId }) => {
                       </svg>
                       <span>5 lessons</span>
                     </div>
-                    
                     <div className="ml-4 flex items-center text-sm text-gray-500">
                       <svg xmlns="http://www.w3.org/2000/svg" className="flex-shrink-0 mr-1.5 h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
@@ -181,7 +179,6 @@ const InterviewCourse = ({ sessionId }) => {
                     </div>
                   </div>
                 </div>
-                
                 <div className="flex-shrink-0">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
                     <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />

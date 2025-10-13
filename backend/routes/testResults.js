@@ -7,7 +7,7 @@ const Quiz = require('../models/Quiz'); // ✅ To fetch question details
 router.post('/', async (req, res) => {
   try {
     const { userId, lessonId, chapterId } = req.body;
-    //console.log(chapterId);
+    //console.log(chapterId,userId,lessonId);
 
     if (!userId || !lessonId || !chapterId) {
       return res.status(400).json({ message: 'userId, lessonId, and chapterId are required' });
@@ -38,6 +38,7 @@ router.post('/', async (req, res) => {
     delete testData.userId;
 
     const newTestResult = new TestResult(testData);
+    //console.log(newTestResult);
     const savedResult = await newTestResult.save();
 
     const populatedResult = await populateAnswerDetails(savedResult);

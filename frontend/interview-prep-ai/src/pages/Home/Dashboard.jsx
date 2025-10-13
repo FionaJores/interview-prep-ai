@@ -1,69 +1,63 @@
-import React, {useState,useEffect} from 'react'
-import { LuPlus, LuCalendar, LuTarget, LuUsers, LuFileText, LuSparkles, LuBookOpen, LuAward, LuFlame } from 'react-icons/lu'
+import React, { useState, useEffect, lazy, Suspense } from 'react';
+import { LuPlus, LuBookOpen, LuFileText, LuAward, LuFlame } from 'react-icons/lu';
 import { CARD_BG } from "../../utils/data";
 import toast from "react-hot-toast";
 import DashBoardLayout from '../../components/layouts/DashBoardLayout';
 import { useNavigate } from 'react-router-dom';
 import { API_PATHS } from '../../utils/apiPaths';
-import SummaryCard from '../../components/Cards/SummaryCard';
-import moment from "moment";
-import CreateSessionForm from './CreateSessionForm';
-import Modal from '../../components/Modal';
 import axiosInstance from '../../utils/axiosInstance';
-import DeleteAlertContent from '../../components/DeleteAlertContent';
-import Navbar from '../../components/layouts/Navbar';
+import moment from "moment";
+
+// Lazy-loaded components
+const SummaryCard = lazy(() => import('../../components/Cards/SummaryCard'));
+const CreateSessionForm = lazy(() => import('./CreateSessionForm'));
+const Modal = lazy(() => import('../../components/Modal'));
+const DeleteAlertContent = lazy(() => import('../../components/DeleteAlertContent'));
+const Navbar = lazy(() => import('../../components/layouts/Navbar'));
 
 const Dashboard = () => {
-  const navigate=useNavigate();
+  const navigate = useNavigate();
   const [openCreateModal, setOpenCreateModal] = useState(false);
-  const [sessions, setSessions]=useState([]);
+  const [sessions, setSessions] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [openDeleteAlert, setOpenDeleteAlert] = useState({ open: false, data: null });
 
-  const [openDeleteAlert,setOpenDeleteAlert]=useState({
-    open:false,
-    data:null,
-  });
-
+  // Fetch all sessions
   const fetchAllSessions = async () => {
-    try{
+    try {
       setIsLoading(true);
       const response = await axiosInstance.get(API_PATHS.SESSION.GET_ALL);
       setSessions(response.data);
-    }catch(error){
-      console.error("Error fetching session data:",error);
+    } catch (error) {
+      console.error("Error fetching session data:", error);
       toast.error("Failed to load sessions");
     } finally {
       setIsLoading(false);
     }
-  }
+  };
 
+  // Delete session
   const deleteSession = async (sessionData) => {
-    try{
+    try {
       await axiosInstance.delete(API_PATHS.SESSION.DELETE(sessionData?._id));
       toast.success("Session Deleted Successfully");
-      setOpenDeleteAlert({
-        open:false,
-        data:null,
-      });
+      setOpenDeleteAlert({ open: false, data: null });
       fetchAllSessions();
-    }catch(error){
-      console.error("Error deleting session data:",error);
+    } catch (error) {
+      console.error("Error deleting session data:", error);
       toast.error("Failed to delete session");
     }
   };
 
-  useEffect(()=>{
-    fetchAllSessions();
-  },[]);
+  useEffect(() => { fetchAllSessions(); }, []);
 
   return (
     <DashBoardLayout>
-      <Navbar/>
-      
-      {/* Main Content - Gradious Theme */}
+      <Suspense fallback={<div></div>}><Navbar /></Suspense>
+
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
         <div className="container mx-auto px-4 md:px-6 py-8">
-          
+
           {/* Header Section */}
           <div className="mb-8">
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-8">
@@ -80,8 +74,8 @@ const Dashboard = () => {
                   </div>
                 </div>
               </div>
-              
-              {/* Stats Cards - Simplified */}
+
+              {/* Stats Cards */}
               <div className="grid grid-cols-2 md:grid-cols-2 gap-4">
                 <div className="bg-white rounded-2xl p-4 shadow-md border border-gray-200">
                   <div className="flex items-center gap-3">
@@ -94,7 +88,7 @@ const Dashboard = () => {
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="bg-white rounded-2xl p-4 shadow-md border border-gray-200">
                   <div className="flex items-center gap-3">
                     <div className="p-2 bg-green-100 rounded-xl">
@@ -102,7 +96,7 @@ const Dashboard = () => {
                     </div>
                     <div>
                       <p className="text-2xl font-bold text-gray-900">
-                        {sessions.filter(session => 
+                        {sessions.filter(session =>
                           moment(session.updatedAt).isAfter(moment().subtract(7, 'days'))
                         ).length}
                       </p>
@@ -113,7 +107,7 @@ const Dashboard = () => {
               </div>
             </div>
 
-            {/* Learning Streak Section */}
+            {/* Learning Streak */}
             <div className="bg-white rounded-2xl p-6 shadow-md border border-gray-200">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3">
@@ -132,111 +126,61 @@ const Dashboard = () => {
             </div>
           </div>
 
-          {/* Sessions Grid */}
+          {/* Sessions Grid or Empty State */}
           {isLoading ? (
-            // Loading Skeleton
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[1, 2, 3].map((item) => (
-                <div key={item} className="bg-white rounded-2xl p-6 shadow-md border border-gray-200 animate-pulse">
-                  <div className="flex items-center gap-4 mb-4">
-                    <div className="w-12 h-12 bg-gray-200 rounded-xl"></div>
-                    <div className="flex-1">
-                      <div className="h-5 bg-gray-200 rounded mb-2"></div>
-                      <div className="h-3 bg-gray-200 rounded w-2/3"></div>
-                    </div>
-                  </div>
-                  <div className="space-y-3">
-                    <div className="h-4 bg-gray-200 rounded"></div>
-                    <div className="h-4 bg-gray-200 rounded w-4/5"></div>
-                  </div>
-                </div>
+              {[1, 2, 3].map(item => (
+                <div key={item} className="bg-white rounded-2xl p-6 shadow-md border border-gray-200 animate-pulse"></div>
               ))}
             </div>
           ) : sessions.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-              {sessions?.map((data,index)=>(
-                <div 
-                  key={data?._id}
-                  className="transform transition-all duration-300 hover:scale-105 hover:shadow-lg"
-                >
+              {sessions.map((data, index) => (
+                <Suspense fallback={<div></div>} key={data._id}>
                   <SummaryCard
-                    colors={CARD_BG[index%CARD_BG.length]}
+                    colors={CARD_BG[index % CARD_BG.length]}
                     role={data?.role || ""}
                     topicsToFocus={data?.topicsToFocus || ""}
                     experience={data?.experience || "-"}
-                    // Removed questions count and progress line
                     description={data?.description || ""}
-                    lastUpdated = {
-                      data?.updatedAt
-                        ? moment(data.updatedAt).format("Do MMM YYYY")
-                        :""
-                    }
-                    onSelect={()=> navigate(`/interview-prep/${data?._id}`)}
-                    onDelete={()=>setOpenDeleteAlert({open:true,data})}
-                    hideProgress // Add this prop to hide progress line
-                    hideQuestionCount // Add this prop to hide question count
+                    lastUpdated={data?.updatedAt ? moment(data.updatedAt).format("Do MMM YYYY") : ""}
+                    onSelect={() => navigate(`/interview-prep/${data?._id}`)}
+                    onDelete={() => setOpenDeleteAlert({ open: true, data })}
+                    hideProgress
+                    hideQuestionCount
                   />
-                </div>
+                </Suspense>
               ))}
             </div>
           ) : (
-            // Empty State - Gradious Theme
+            // 🧭 Empty State when no sessions found
             <div className="text-center py-20 bg-white rounded-3xl shadow-md border border-gray-200 mb-8">
-              <div className="max-w-lg mx-auto">
-                <div className="relative mb-8">
-                  <div className="w-32 h-32 bg-gradient-to-br from-blue-100 to-purple-200 rounded-full flex items-center justify-center mx-auto shadow-inner">
-                    <div className="w-24 h-24 bg-gradient-to-br from-blue-600 to-purple-700 rounded-full flex items-center justify-center shadow-lg">
-                      <LuPlus className="text-3xl text-white" />
-                    </div>
-                  </div>
+              <div className="flex flex-col items-center justify-center space-y-4">
+                <div className="p-4 bg-blue-100 rounded-full">
+                  <LuBookOpen className="text-blue-600 text-4xl" />
                 </div>
-                
-                <h3 className="text-2xl font-bold text-gray-900 mb-3">Start Your Interview Preparation</h3>
-                <p className="text-gray-600 mb-8 text-lg leading-relaxed">
-                  Create your first practice session to begin mastering interview questions and techniques.
+                <h2 className="text-2xl font-semibold text-gray-800">No Sessions Found</h2>
+                <p className="text-gray-500 max-w-md">
+                  You haven’t created any interview sessions yet. Start by creating your first session to begin your learning journey!
                 </p>
-                
                 <button
                   onClick={() => setOpenCreateModal(true)}
-                  className="group relative bg-gradient-to-r from-blue-600 to-purple-700 hover:from-blue-700 hover:to-purple-800 text-white font-semibold text-lg px-8 py-4 rounded-2xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl flex items-center gap-3 mx-auto overflow-hidden"
+                  className="mt-4 inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-700 hover:from-blue-700 hover:to-purple-800 text-white font-semibold text-base px-6 py-3 rounded-2xl transition-all duration-300 shadow-md hover:shadow-blue-500/40"
                 >
-                  <div className="relative z-10 flex items-center gap-3">
-                    <LuPlus className="text-xl transition-transform group-hover:rotate-90 duration-300" />
-                    Create Session
-                  </div>
-                  <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  <LuPlus className="text-lg" /> Create Your First Session
                 </button>
-                
-                <div className="mt-8 flex justify-center gap-6 text-sm text-gray-500">
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                    Mock Interviews
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                    Practice Questions
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                    Progress Tracking
-                  </div>
-                </div>
               </div>
             </div>
           )}
 
-          {/* Enhanced Floating Action Button - Gradious Colors */}
+          {/* Floating Action Button (if sessions exist) */}
           {sessions.length > 0 && !isLoading && (
-            <button
-              className="fixed bottom-8 right-8 z-50 group"
-              onClick={() => setOpenCreateModal(true)}
-            >
+            <button onClick={() => setOpenCreateModal(true)} className="fixed bottom-8 right-8 z-50 group">
               <div className="relative">
                 <div className="h-14 flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-purple-700 hover:from-blue-700 hover:to-purple-800 text-white font-semibold text-base px-6 py-3 rounded-2xl transition-all duration-300 transform group-hover:scale-105 shadow-2xl hover:shadow-blue-500/40 cursor-pointer border border-blue-200/20">
                   <LuPlus className="text-xl transition-transform group-hover:rotate-90 duration-500" />
                   New Session
                 </div>
-                {/* Animated ring effect */}
                 <div className="absolute inset-0 rounded-2xl border-2 border-blue-400/30 animate-ping group-hover:animate-none opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               </div>
             </button>
@@ -244,45 +188,27 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Create Session Modal */}
-      <Modal
-        isOpen={openCreateModal}
-        onClose={()=>{
-          setOpenCreateModal(false);
-        }}
-        hideHeader
-        size="lg"
-      >
-        <div className="p-1">
-          <CreateSessionForm 
-            onSuccess={() => {
-              setOpenCreateModal(false);
-              fetchAllSessions();
-            }}
+      {/* Modals */}
+      <Suspense fallback={<div></div>}>
+        {/* Create Session Modal */}
+        <Modal isOpen={openCreateModal} onClose={() => setOpenCreateModal(false)} hideHeader size="lg">
+          <CreateSessionForm
+            onSuccess={() => { setOpenCreateModal(false); fetchAllSessions(); }}
             onCancel={() => setOpenCreateModal(false)}
           />
-        </div>
-      </Modal>
+        </Modal>
 
-      {/* Delete Confirmation Modal */}
-      <Modal
-        isOpen={openDeleteAlert?.open}
-        onClose={()=>{
-          setOpenDeleteAlert({open:false,data:null});
-        }}
-        title="Delete Session"
-        size="md"
-      >
-        <div className="p-1">
+        {/* Delete Session Modal */}
+        <Modal isOpen={openDeleteAlert.open} onClose={() => setOpenDeleteAlert({ open: false, data: null })} title="Delete Session" size="md">
           <DeleteAlertContent
             content="This action will permanently delete the session. This cannot be undone."
-            onDelete={()=>deleteSession(openDeleteAlert.data)}
-            onCancel={() => setOpenDeleteAlert({open:false,data:null})}
+            onDelete={() => deleteSession(openDeleteAlert.data)}
+            onCancel={() => setOpenDeleteAlert({ open: false, data: null })}
           />
-        </div>
-      </Modal>
+        </Modal>
+      </Suspense>
     </DashBoardLayout>
-  )
-}
+  );
+};
 
-export default Dashboard
+export default Dashboard;

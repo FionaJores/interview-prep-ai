@@ -10,7 +10,7 @@ router.get('/:topic', async (req, res) => {
   try {
     const { topic } = req.params;
     const { difficulty = 5, lessonId, chapterId, userId } = req.query;
-    //console.log(chapterId);
+     //console.log(chapterId,lessonId,userId);
 
     if (!userId) return res.status(400).json({ message: 'userId is required' });
 
@@ -21,15 +21,25 @@ router.get('/:topic', async (req, res) => {
     if (!chapterId || !mongoose.Types.ObjectId.isValid(chapterId)) {
       return res.status(400).json({ message: 'Invalid or missing chapterId' });
     }
+    console.log('userId:', userId);
+console.log('lessonId:', lessonId);
+console.log('chapterId:', chapterId);
+console.log('Is valid ObjectId?', 
+  mongoose.Types.ObjectId.isValid(userId), 
+  mongoose.Types.ObjectId.isValid(lessonId), 
+  mongoose.Types.ObjectId.isValid(chapterId)
+);
 
     // Check if test already attempted
-    const existingResult = await TestResult.findOne({
-      user: userId,
-      lessonId,
-      chapterId,
-      attempt: true,
-    });
-   //console.log(existingResult);
+   const existingResult = await TestResult.findOne({
+  user: new mongoose.Types.ObjectId(userId),
+  lessonId: new mongoose.Types.ObjectId(lessonId),
+  chapterId: new mongoose.Types.ObjectId(chapterId),
+  attempt:true
+});
+console.log('Existing result found without attempt filter:', existingResult);
+
+   console.log(existingResult);
     if (existingResult) {
       const populatedAnswers = await Promise.all(
         existingResult.answers.map(async (ans) => {

@@ -197,3 +197,4 @@ const saveProgress = async (req, res) => {
 };
 
 module.exports = { getQuiz, saveQuizAttempt, saveProgress };
+

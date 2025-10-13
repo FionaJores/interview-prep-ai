@@ -157,9 +157,23 @@ const getModuleBySessionAndSkill = async (req, res) => {
   try {
     const { sessionId, skill } = req.params;
 
-    const module = await Module.findOne({ session: sessionId, skill })
-      .populate("chapters"); // no lessons
-    if (!module) return res.status(404).json({ message: "Module not found" });
+    const session = await Session.findById(sessionId)
+      .populate({
+        path: "modules",
+        match: { skill: skill },   // filter modules by skill
+        populate: {
+          path: "chapters",        // populate chapters inside each module
+        },
+      });
+     
+
+    // session might exist but module with skill may not
+    const module = session?.modules?.[0]; // get first module matching skill
+
+    if (!module) {
+      return res.status(404).json({ message: "Module not found" });
+    }
+
     res.json(module);
   } catch (err) {
     console.error(err);

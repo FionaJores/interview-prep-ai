@@ -1,15 +1,16 @@
-import React, { useState } from 'react'
-import SAMPLE_PAGE from '../assets/sample_page.png';
-import { APP_FEATURES } from "../utils/data"
+import React, { useState, useContext, lazy, Suspense } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LuSparkles, LuArrowRight, LuRocket, LuUsers, LuTarget } from "react-icons/lu";
-import { FaCheckCircle, FaRegCheckCircle } from "react-icons/fa";
+import SAMPLE_PAGE from '../assets/sample_page.png';
+import { APP_FEATURES } from "../utils/data";
+import { LuSparkles, LuArrowRight, LuRocket } from "react-icons/lu";
+import { FaCheckCircle } from "react-icons/fa";
 import Login from './Auth/Login';
 import SignUp from './Auth/SignUp';
-import Modal from '../components/Modal';
-import { useContext } from 'react';
 import { UserContext } from '../context/userContext';
-import ProfileInfoCard from '../components/Cards/ProfileInfoCard';
+
+// Lazy load heavy components
+const Modal = lazy(() => import('../components/Modal'));
+const ProfileInfoCard = lazy(() => import('../components/Cards/ProfileInfoCard'));
 
 const LandingPage = () => {
   const { user } = useContext(UserContext);
@@ -27,7 +28,7 @@ const LandingPage = () => {
   };
 
   const FeatureIcon = ({ index }) => {
-    const icons = [LuTarget, LuRocket, LuUsers, FaCheckCircle, LuSparkles];
+    const icons = [LuRocket, FaCheckCircle, LuSparkles];
     const IconComponent = icons[index % icons.length];
     return <IconComponent className="w-6 h-6" />;
   };
@@ -39,7 +40,7 @@ const LandingPage = () => {
         {/* Background Elements */}
         <div className="absolute top-0 left-0 w-96 h-96 bg-amber-200/20 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2" />
         <div className="absolute bottom-0 right-0 w-96 h-96 bg-orange-200/20 rounded-full blur-3xl translate-x-1/2 translate-y-1/2" />
-        
+
         <div className="container mx-auto px-4 pt-8 pb-20 relative z-10">
           {/* Header */}
           <header className="flex justify-between items-center mb-20">
@@ -53,7 +54,9 @@ const LandingPage = () => {
             </div>
 
             {user ? (
-              <ProfileInfoCard />
+              <Suspense fallback={<div></div>}>
+                <ProfileInfoCard />
+              </Suspense>
             ) : (
               <button 
                 className="bg-gradient-to-r from-amber-500 to-orange-500 text-white px-6 py-2.5 rounded-full font-semibold hover:shadow-lg hover:shadow-amber-200 transition-all duration-300 hover:scale-105 cursor-pointer border border-amber-400"
@@ -73,7 +76,7 @@ const LandingPage = () => {
                   AI Powered Learning Platform
                 </div>
               </div>
-              
+
               <h1 className="text-5xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight">
                 Ace Your Next{' '}
                 <span className="bg-gradient-to-r from-amber-500 to-orange-500 bg-clip-text text-transparent">
@@ -95,8 +98,6 @@ const LandingPage = () => {
                   {user ? "Go to Dashboard" : "Start Learning Now"}
                   <LuArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </button>
-                
-               
               </div>
 
               {/* Stats */}
@@ -117,12 +118,15 @@ const LandingPage = () => {
             </div>
 
             {/* Hero Image */}
-            <div className="flex-1 flex justify-center">
-              <div className="relative">
+            <div className="flex-1 flex justify-center min-h-[400px]">
+              <div className="relative w-full">
                 <div className="absolute -inset-4 bg-gradient-to-r from-amber-400 to-orange-400 rounded-2xl blur-lg opacity-20"></div>
                 <img 
                   src={SAMPLE_PAGE}
                   alt="InterviewPrep AI Dashboard"
+                  loading="lazy"
+                  width={1200}
+                  height={800}
                   className="relative w-full max-w-2xl rounded-xl shadow-2xl border border-amber-100"
                 />
               </div>
@@ -212,23 +216,25 @@ const LandingPage = () => {
       </footer>
 
       {/* Auth Modal */}
-      <Modal
-        isOpen={openAuthModal}
-        onClose={() => {
-          setOpenAuthModal(false);
-          setCurrentPage("login");
-        }}
-        hideHeader
-      >
-        <div className="p-2">
-          {currentPage === "login" && (
-            <Login setCurrentPage={setCurrentPage} />
-          )}
-          {currentPage === "signup" && (
-            <SignUp setCurrentPage={setCurrentPage} />
-          )}
-        </div>
-      </Modal>
+      <Suspense fallback={<div></div>}>
+        <Modal
+          isOpen={openAuthModal}
+          onClose={() => {
+            setOpenAuthModal(false);
+            setCurrentPage("login");
+          }}
+          hideHeader
+        >
+          <div className="p-2">
+            {currentPage === "login" && (
+              <Login setCurrentPage={setCurrentPage} />
+            )}
+            {currentPage === "signup" && (
+              <SignUp setCurrentPage={setCurrentPage} />
+            )}
+          </div>
+        </Modal>
+      </Suspense>
     </>
   );
 };
